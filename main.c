@@ -77,23 +77,104 @@ int main() {
                 exit(0);
 
             }
+            if (nahuelMolina > 0) {
+                int status;//no necesitamos status pero la declaramos porque la requiere la funcion
+                fprintf(stdout,"eperando(1)");
+                //waitpid(dybala, &status, WEXITED);
+                fprintf(stdout,"eperando(2)");
 
+                waitpid(messi, &status, WEXITED);
+                pid_t tagliafico = fork();
+                if (tagliafico == -1) {
+                    fprintf(stdout, "\n error: no se pudo hacer el fork");
+                    exit(-1);
+                }
+                if (tagliafico == 0) {
+                    fgetc(archivo);
+                    struct timeval inicio4;
+                    struct timeval fin4;
+                    char control = '\0';
+                    int cont = 0;
+                    double uno, dos;
+                    fseek(archivo, 0, SEEK_SET);
+
+
+                    gettimeofday(&inicio4, NULL);
+
+                    while (cont < 2) {
+                        control = fgetc(archivo);
+                        //fprintf(stdout,"%c",control);
+
+                        if (control == '1') {
+                            control = fgetc(archivo);
+                            if (control == 'c') {
+                                getc(archivo);
+                                getc(archivo);
+                                fscanf(archivo, "%lf", &uno);
+                                cont += 1;
+                            }
+                        }
+                        if (control == '2') {
+                            control = fgetc(archivo);
+                            if (control == 'c') {
+                                getc(archivo);
+                                getc(archivo);
+                                fscanf(archivo, "%lf", &dos);
+                                cont += 1;
+                            }
+                        }
+                        control = fgetc(archivo);
+                    }
+                    double media4 = (uno + dos) / 2;
+                    gettimeofday(&fin4, NULL);
+                    printf("Tiempo: %lf\n", (fin4.tv_sec - inicio4.tv_sec + (fin4.tv_usec - inicio4.tv_usec) / 1.e6));
+                    fprintf(archivo, "h4c: %lf\n", media4);
+
+                    fprintf(archivo, "h4t: %lf\n",
+                            (fin4.tv_sec - inicio4.tv_sec + (fin4.tv_usec - inicio4.tv_usec) / 1.e6));
+                    exit(0);
+                }
+                if (tagliafico > 0) {
+                    printf("\n soy el padre mi pid es : %d", getpid());
+                    waitpid(nahuelMolina, &status, WEXITED);
+                    waitpid(tagliafico, &status, WEXITED);
+
+                    char control = '\0';
+                    int cont = 0;
+                    double uno, dos;
+                    fseek(archivo, 0, SEEK_SET);
+
+
+                    while (cont < 2) {
+                        control = fgetc(archivo);
+                        if (control == '3') {
+                            control = fgetc(archivo);
+                            if (control == 'c') {
+                                getc(archivo);
+                                getc(archivo);
+                                fscanf(archivo, "%lf", &uno);
+                                cont += 1;
+                            }
+                        }
+                        if (control == '4') {
+                            control = fgetc(archivo);
+                            if (control == 'c') {
+                                getc(archivo);
+                                getc(archivo);
+                                fscanf(archivo, "%lf", &dos);
+                                cont += 1;
+                            }
+                        }
+                        control = fgetc(archivo);
+                    }
+
+                    exit(0);
+
+                }
+
+            }
         }
-        int status;//no necesitamos status pero la declaramos porque la requiere la funcion
-        waitpid(dybala, &status, WEXITED);
-        waitpid(messi, &status, WEXITED);
-        pid_t tagliafico = fork();
-        if (tagliafico == -1) {
-            fprintf(stdout, "\n error: no se pudo hacer el fork");
-            exit(-1);
-        }
-        if (tagliafico == 0) {
-            fgetc(archivo)
-        }
-        if (tagliafico > 0) {
-            printf("\n soy el padre mi pid es : %d", getpid());
-            exit(0);
-        }
+
     }
 
     if (messi == 0) {
