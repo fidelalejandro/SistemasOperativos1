@@ -91,7 +91,7 @@ void calculaMediaDesdeArchivo(FILE *archivo) {
     int cuenta = 0;
     while ((cuenta < 2) && ((read = getline(&linea, &len, archivo)) != -1)) {
 
-        printf("Linea recuperada de longitud %zu: %s\n", read, linea);
+        //printf("Linea recuperada de longitud %zu: %s\n", read, linea);
         if (strncmp(linea, "Hijo 1: media:", 14) == 0 || strncmp(linea, "Hijo 2: media:", 14) == 0) {
             double valor;
             int ok = sscanf(linea + 14, "%lf", &valor);
@@ -150,7 +150,7 @@ void calculaDiferenciaDesdeArchivo(FILE *archivo) {
     int cuenta = 0;
     while ((cuenta < 2) && ((read = getline(&linea, &len, archivo)) != -1)) {
 
-        printf("Linea recuperada de longitud %zu: %s\n", read, linea);
+        //printf("Linea recuperada de longitud %zu: %s\n", read, linea);
         if (strncmp(linea, "Hijo 1: media:", 14) == 0 || strncmp(linea, "Hijo 2: media:", 14) == 0) {
             double valor;
             int ok = sscanf(linea + 14, "%lf", &valor);
@@ -313,7 +313,7 @@ int main() {
     int leidoBien[] = {0, 0};
     int cuenta = 0;
     while ((cuenta < 2) && ((read = getline(&linea, &len, archivo)) != -1)) {
-        printf("Linea recuperada de longitud %zu: %s\n", read, linea);
+        //printf("Linea recuperada de longitud %zu: %s\n", read, linea);
 
         if (strncmp(linea, "Hijo 3: media:", 14) == 0) {
             double valor;
@@ -351,7 +351,7 @@ int main() {
     int leidoBienp[] = {0, 0, 0, 0};
     int cuentap = 0;
     while ((cuentap < 4) && ((readp = getline(&linea, &len, archivo)) != -1)) {
-        //printf("Linea recuperada de longitud %zu: %s\n", readp, lineap);
+        ////printf("Linea recuperada de longitud %zu: %s\n", readp, lineap);
 
         if (strncmp(linea, "Hijo 1: tiempo:", 15) == 0) {
             double valor;
