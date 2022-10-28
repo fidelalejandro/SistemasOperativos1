@@ -1,4 +1,10 @@
-C:\WINDOWS\system32\wsl.exe --distribution Ubuntu --exec /bin/bash -c "export PATH=\"$PATH:/usr/bin\" && export CMAKE_COLOR_DIAGNOSTICS=ON && export CLION_IDE=TRUE && export JETBRAINS_IDE=TRUE && cd '/home/usuario_ubuntu/Universidad/Universidad/C2 S1 Sistemas Operativos 1/Practicas/Practica 3/Ej6/cmake-build-debug' && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/usr/bin/make -DCMAKE_C_COMPILER=/usr/bin/gcc '-DCMAKE_CXX_COMPILER=/usr/bin/g++' -G 'CodeBlocks - Unix Makefiles' -S '/home/usuario_ubuntu/Universidad/Universidad/C2 S1 Sistemas Operativos 1/Practicas/Practica 3/Ej6' -B '/home/usuario_ubuntu/Universidad/Universidad/C2 S1 Sistemas Operativos 1/Practicas/Practica 3/Ej6/cmake-build-debug'"
+/opt/CLion/clion-2022.2.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/CLion/clion-2022.2.1/bin/ninja/linux/ninja -G Ninja -S "/home/alejandro/SistemasOperativos1/Practica 3/Ej6" -B "/home/alejandro/SistemasOperativos1/Practica 3/Ej6/cmake-build-debug"
+-- The C compiler identification is GNU 11.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: /home/usuario_ubuntu/Universidad/Universidad/C2 S1 Sistemas Operativos 1/Practicas/Practica 3/Ej6/cmake-build-debug
+-- Build files have been written to: /home/alejandro/SistemasOperativos1/Practica 3/Ej6/cmake-build-debug

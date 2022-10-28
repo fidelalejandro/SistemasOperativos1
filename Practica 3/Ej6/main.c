@@ -5,6 +5,12 @@
  *  cuando el usuario le envíe una señal SIGUSR1 desde la consola. Asegúrate de algún modo que
  *  todos los procesos terminan normalmente.
  */
+
+
+/*
+ * El programa está pensado para que siempre sea el último hijo el que reciba la señal SIGUSR1 y, a partir de este,
+ * se vayan finalizando todos los hijos de la forma en la que cada hijo finalice al anterior.
+ */
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
