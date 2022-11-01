@@ -1,3 +1,0 @@
-/home/alejandro/SistemasOperativos1/Practica 3/Ej6/cmake-build-debug/CMakeFiles/Ej6.dir
-/home/alejandro/SistemasOperativos1/Practica 3/Ej6/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/alejandro/SistemasOperativos1/Practica 3/Ej6/cmake-build-debug/CMakeFiles/rebuild_cache.dir
