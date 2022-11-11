@@ -45,24 +45,24 @@ Nota 2: Se recomienda que primero hagas el programa sin bloquear la señal SIGUS
 char *generarInfoTraza()
 {
     pid_t miPid = getpid();
-    
+
     struct timeval tv_horaActual;
     gettimeofday(&tv_horaActual, NULL);
-    
+
     struct tm *tm_horaActual = localtime(&tv_horaActual.tv_sec);
-    
+
     static char bufferTraza[100];
     strftime(bufferTraza, 100, "%F %T.", tm_horaActual);
-    
+
     sprintf(bufferTraza + 20, "%06ld - pid:% 5d", tv_horaActual.tv_usec, miPid);
-    
+
     return bufferTraza;
 }
 
 void manejador(int sig)
 {
     char *infoTraza = generarInfoTraza();
-    
+
     switch (sig)
     {
         case SIGUSR1:
@@ -85,7 +85,7 @@ int main()
     struct sigaction sa_signal;
     sa_signal.sa_handler = manejador;
     sa_signal.sa_flags = SA_RESTART;
-    
+
     int signal_success;
     signal_success = sigaction(SIGUSR1, &sa_signal, NULL);
     if (signal_success == -1)
@@ -97,22 +97,22 @@ int main()
     {
         perror("La asignacion de la señal no ha tenido exito.");
     }
-    
+
     signal_success = sigaction(SIGINT, &sa_signal, NULL);
     if (signal_success == -1)
     {
         perror("La asignacion de la señal no ha tenido exito.");
     }
-    
+
     pid_t pid_Padre = getpid();
-    
+
     sigset_t ss_sigusr1;
     sigset_t ss_oldSet;
     if (sigaddset(&ss_sigusr1, SIGUSR1) == -1)
     {
         perror("Error en sigaddset()");
     }
-    
+
     printf("[%s] Padre: Procedo a bloquear SIGUSR1.\n", generarInfoTraza());
     if (sigprocmask(SIG_BLOCK, &ss_sigusr1, NULL) == -1)
     {
@@ -129,7 +129,7 @@ int main()
     {
         printf("[%s] Padre: SIGUSR1 no está bloqueada.\n", generarInfoTraza());
     }
-    
+
     printf("[%s] Padre: Procedo a hacer el fork del hijo 1.\n", generarInfoTraza());
     pid_t pid_hijo1 = fork();
     if (pid_hijo1 == -1)
@@ -137,26 +137,26 @@ int main()
         perror("El fork no ha tenido exito.");
         exit(-1);
     }
-    
+
     if (pid_hijo1 == 0)
     {
         printf("[%s] Hijo1: Enviando señal(SIGUSR1) a padre.\n", generarInfoTraza());
         kill(pid_Padre, SIGUSR1);
-        
+
         printf("[%s] Hijo1: Voy a dormir durante 10s.\n", generarInfoTraza());
         sleep(10);
-        
+
         printf("[%s] Hijo1: Enviando señal(SIGUSR2) a padre.\n", generarInfoTraza());
         kill(pid_Padre, SIGUSR2);
-        
+
         printf("[%s] Hijo1: Voy a dormir durante 5s.\n", generarInfoTraza());
         sleep(5);
-        
+
         printf("[%s] Hijo1: Hago exit(123).\n", generarInfoTraza());
         exit(123);
     }
-    
-    
+
+
     printf("[%s] Padre: Procedo a hacer el fork del hijo 2.\n", generarInfoTraza());
     pid_t pid_hijo2 = fork();
     if (pid_hijo2 == -1)
@@ -168,23 +168,23 @@ int main()
     {
         printf("[%s] Hijo2: Voy a dormir durante 20s.\n", generarInfoTraza());
         sleep(20);
-        
+
         printf("[%s] Hijo2: Enviando señal(SIGINT) a padre.\n", generarInfoTraza());
         kill(pid_Padre, SIGINT);
-        
+
         printf("[%s] Hijo2: Hago exit(0).\n", generarInfoTraza());
         exit(0);
     }
-    
+
     printf("[%s] Padre: Voy a dormir durante 100s.\n", generarInfoTraza());
     sleep(100);
-    
+
     sigset_t ss_pending;
     if (sigpending(&ss_pending) == -1)
     {
         perror("Error en sigpending()");
     }
-    
+
     int ret = sigismember(&ss_pending, SIGUSR1);
     switch (ret)
     {
@@ -197,17 +197,17 @@ int main()
         default:
             perror("Error en sigismember().");
     }
-    
+
     printf("[%s] PADRE: Procedo a desbloquear SIGUSR1\n", generarInfoTraza());
     if (sigprocmask(SIG_UNBLOCK, &ss_sigusr1, NULL) == -1)
     {
         perror("Error en sigprocmask()");
     }
-    
+
     printf("[%s] PADRE: Espero al hijo 1.\n", generarInfoTraza());
     int status;
     waitpid(pid_hijo1, &status, 0);
-    
+
     if (WIFEXITED(status))
     {
         printf("[%s] Padre: Hijo 1 pid %d ha terminado con RC=%d\n", generarInfoTraza(), pid_hijo1,
@@ -217,10 +217,10 @@ int main()
     {
         printf("[%s] Padre: Hijo 1 pid %d ha salido con SIG=%d\n", generarInfoTraza(), pid_hijo1, WTERMSIG(status));
     }
-    
+
     printf("[%s] PADRE: Espero al hijo 2 para salir del programa.\n", generarInfoTraza());
     waitpid(pid_hijo2, NULL, 0);
-    
+
     printf("[%s] PADRE: Finalizo el programa.\n", generarInfoTraza());
     return 0;
 }
