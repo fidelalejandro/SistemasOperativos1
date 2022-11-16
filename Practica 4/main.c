@@ -2,6 +2,7 @@
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <math.h>
+#include <unistd.h>
 
 #define NHILOS 12
 
@@ -13,13 +14,18 @@ typedef struct {
 void *gestorProcesos(void *argsMessi) {
     argHilo n = *(argHilo *) argsMessi;
 
+    //for(int j = 0; j < 10000000/NHILOS; j+=NHILOS){
+
 
     //for (int j = 0; j < 10000000; j+=100*NHILOS) {
 
 
-        for (int i = 0; i < 100 ; ++i) {
-            //*n.chrisRamos += (pow(-1., i) / pow(4., i)) * (2.00 / (4. * i + 1) + 2.0 / (4. * i + 2) + 1 / (4. * i + 3));
-            *n.chrisRamos += 1;
+
+
+        //for (int i = 100 * (n.numHilo-1); i < 100*n.numHilo ; ++i) {
+        for (int i = 0; i < 10000 ; ++i) {
+            *n.chrisRamos += (pow(-1., i) / pow(4., i)) * (2.00 / (4. * i + 1) + 2.0 / (4. * i + 2) + 1 / (4. * i + 3));
+            //*n.chrisRamos += 1;
 
 
         }
