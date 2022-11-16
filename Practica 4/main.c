@@ -3,73 +3,133 @@
 #include <pthread.h>
 #include <math.h>
 #include <unistd.h>
+#include <sys/time.h>
 
-#define NHILOS 12
+#define K_NUM_HILOS 3
+#define K_TOTAL_ITERACIONES 10000000
+#define K_CALCULOS_POR_ITERACION 100
+#define DEBUG 0
 
-typedef struct {
+#define CALCULO_PARCIAL_PI(r) (pow(-1, k) / pow(4.00, k)) * (2.00 / (4 * k + 1) + 2.0 / (4. * k + 2) + 1 / (4. * k + 3))
+
+typedef struct
+{
+    double sumaEsteHilo;
     int numHilo;
-    double *chrisRamos;
-} argHilo;
-
-void *gestorProcesos(void *argsMessi) {
-    argHilo n = *(argHilo *) argsMessi;
-
-    //for(int j = 0; j < 10000000/NHILOS; j+=NHILOS){
-
-
-    //for (int j = 0; j < 10000000; j+=100*NHILOS) {
+    int totalHilos;
+    int numCalculosporIter;
+#if(DEBUG == 1)
+    int iteracionesRealizadas; //Comprobacion de que hace las its.
+#endif
+} DatosCalculoEsteHilo;
 
 
+void *calculoEsteHilo(void *pEntrada)
+{
+    DatosCalculoEsteHilo *datosCalculoEsteHilo = (DatosCalculoEsteHilo *) pEntrada;
 
+    datosCalculoEsteHilo->sumaEsteHilo = 0.0;
+#if(DEBUG == 1)
+    datosCalculoEsteHilo->iteracionesRealizadas = 0;
+#endif
 
-        //for (int i = 100 * (n.numHilo-1); i < 100*n.numHilo ; ++i) {
-        for (int i = 0; i < 10000 ; ++i) {
-            *n.chrisRamos += (pow(-1., i) / pow(4., i)) * (2.00 / (4. * i + 1) + 2.0 / (4. * i + 2) + 1 / (4. * i + 3));
-            //*n.chrisRamos += 1;
+    for (int valorInicialBucleInterno = datosCalculoEsteHilo->numHilo * datosCalculoEsteHilo->numCalculosporIter;
+         valorInicialBucleInterno < K_TOTAL_ITERACIONES; valorInicialBucleInterno += datosCalculoEsteHilo->totalHilos * datosCalculoEsteHilo->numCalculosporIter)
+    {
+        for (int k = valorInicialBucleInterno; k < (valorInicialBucleInterno + datosCalculoEsteHilo->numCalculosporIter); k++)
+        {
+            datosCalculoEsteHilo->sumaEsteHilo += CALCULO_PARCIAL_PI(k);
 
+#if(DEBUG == 1)
+            datosCalculoEsteHilo->iteracionesRealizadas += 1;//para comprobar las iters.
+#endif
 
         }
-    //}
 
+//        printf("[%d] %d %.70lf\n", datosCalculoEsteHilo->numHilo, valorInicialBucleInterno, datosCalculoEsteHilo->sumaEsteHilo);
+    }
 
+    return NULL;
 }
 
-int main() {
+double calcularTiempo(struct timeval *tv_overhead, struct timeval *tv_inicio, struct timeval *tv_fin)
+{
+    double tiempoOverhead = (tv_inicio->tv_sec - tv_overhead->tv_sec + (tv_inicio->tv_usec - tv_overhead->tv_usec) / 1.e6);
+    double tiempoCalculo = (tv_fin->tv_sec - tv_inicio->tv_sec + (tv_fin->tv_usec - tv_inicio->tv_usec) / 1.e6);
 
-    int hiloActual;
-    pthread_t hilos[NHILOS];
-    double valoresHilos[NHILOS];
-    argHilo estructuraArgs;
+    tiempoCalculo -= tiempoOverhead;
 
+    return tiempoCalculo;
+}
 
-    for (int i = 1; i < NHILOS+1; ++i) {
+int main()
+{
+    pthread_t hilo[K_NUM_HILOS];
 
-        estructuraArgs.numHilo = i;
-        estructuraArgs.chrisRamos = &valoresHilos[i-1];
+    DatosCalculoEsteHilo estructuraArgs[K_NUM_HILOS];
 
-        pthread_create(&hilos[i-1],NULL,gestorProcesos,(void*)&estructuraArgs);
+    struct timeval tv_overhead;
+    struct timeval tv_inicio;
+    struct timeval tv_fin;
+
+    gettimeofday(&tv_overhead, NULL);
+    gettimeofday(&tv_inicio, NULL);
+
+    for (int numHilo = 0; numHilo < K_NUM_HILOS; numHilo++)
+    {
+        estructuraArgs[numHilo].numHilo = numHilo;
+        estructuraArgs[numHilo].totalHilos = K_NUM_HILOS;
+        estructuraArgs[numHilo].numCalculosporIter = K_CALCULOS_POR_ITERACION;
+        estructuraArgs[numHilo].sumaEsteHilo = 0.00;
+
+#if(DEBUG == 1)
+        estructuraArgs[numHilo].iteracionesRealizadas = 0; //Comprobacion de que hace las its.
+#endif
+
+        pthread_create(&hilo[numHilo], NULL, calculoEsteHilo, (void *) &estructuraArgs[numHilo]);
 
     }
 
-    for (int i = 0; i < NHILOS; ++i) {
-        pthread_join(hilos[i], NULL);
-    }
-    double resultado ;
-    for (int i = 0; i < NHILOS; ++i) {
-      resultado += valoresHilos[i];
-
+    for (int numHilo = 0; numHilo < K_NUM_HILOS; numHilo++)
+    {
+        pthread_join(hilo[numHilo], NULL);
     }
 
-    double resultado2;
-    for (int i = 0; i < 10000000; ++i) {
-        resultado2 += (pow(-1, i) / pow(4.00, i)) * (2.00 / (4 * i + 1) + 2.0 / (4. * i + 2) + 1 / (4. * i + 3));
+    gettimeofday(&tv_fin, NULL);
 
+    double resultadoMultiHilo = 0;
+#if(DEBUG == 1)
+    int totItrs=0;
+#endif
+    for (int numHilo = 0; numHilo < K_NUM_HILOS; numHilo++)
+    {
+        resultadoMultiHilo += estructuraArgs[numHilo].sumaEsteHilo;
+#if(DEBUG == 1)
+        totItrs +=estructuraArgs[numHilo].iteracionesRealizadas;
+#endif
     }
 
-    printf("\nResultado: %lf\n",resultado2);
-    printf("\nResultado: %lf\n",resultado);
 
+    double tiempoMultiHilo = calcularTiempo(&tv_overhead, &tv_inicio, &tv_fin);
+    printf("Resultado multi-hilo: %.55lf\n", resultadoMultiHilo);
+    printf("Tiempo multi-hilo: %lf\n", tiempoMultiHilo);
+#if(DEBUG == 1)
+    printf("Iteraciones multi-hilo: %i\n", totItrs);  //Comprobacion de que hace las its.
+#endif
 
+    gettimeofday(&tv_overhead, NULL);
+    gettimeofday(&tv_inicio, NULL);
+    double resultadoSecuencial = 0;
+    for (int k = 0; k < K_TOTAL_ITERACIONES; ++k)
+    {
+        resultadoSecuencial += CALCULO_PARCIAL_PI(k);
+    }
+
+    gettimeofday(&tv_fin, NULL);
+
+    double tiempoSecuencial = calcularTiempo(&tv_overhead, &tv_inicio, &tv_fin);
+    printf("Resultado secuencial: %.55lf\n", resultadoSecuencial);
+    printf("Tiempo secuencial: %lf\n", tiempoSecuencial);
 
     return 0;
 }
