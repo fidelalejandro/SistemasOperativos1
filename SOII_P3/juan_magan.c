@@ -10,7 +10,6 @@
 #define C 2 // Número de consumidores
 #define N 10 // Tamaño del buffer
 #define MAX_PROD 20 // Numero maximo de items a producir por cada hilo productor
-#define MAX_CONS (P*MAX_PROD)/C // Numero maximo de items a consumir por cada hilo consumidor
 
 pthread_mutex_t the_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condc = PTHREAD_COND_INITIALIZER;
@@ -37,8 +36,6 @@ int i_B = 0;
 
 //buffer
 int *buffer;
-//en caso de que el numero de items a consumir por cada consumidor no sea el mismo, sera el ultimo el que consuma los restantes
-int resto = (P * MAX_PROD) % C;
 
 /**
  * Función que produce un elemento aleatorio.
@@ -55,9 +52,9 @@ int produce_item() {
  * @param item
  */
 void insert_item(int *buffer, int item) {
-    //se aumenta el valor del contador
+    //Aumentamos el valor del contador
     buffer[0]++;
-    //se inserta el item
+    //Insertamos el item
     buffer[buffer[0]] = item;
 }
 
@@ -67,11 +64,11 @@ void insert_item(int *buffer, int item) {
  * @return
  */
 int consume_item(int *buffer) {
-    //se toma el numero que se encuentra en la posicion del buffer indicada por el puntero
+    //Tomamos el número que se encuentra en la posicion del buffer indicada por el primer elemento del mismo
     int num = buffer[buffer[0]];
-    //se escribe un -1 en su lugar
+    //Escribimos un -1 en su lugar
     buffer[buffer[0]] = -1;
-    //se resta el valor del puntero
+    //Restamos el valor del índice
     buffer[0]--;
     return num;
 }
@@ -162,11 +159,9 @@ void *consumidor(void *args) {
             //pthread_mutex_lock(&the_mutex);
             //mientras el buffer este vacio(buffer[0]=0), el hilo consumidor se bloquea hasta que un hilo productor lo despierte
 
-            printf("Voy a dormirme %d\n", (*num_hilo)+1);
 
             while (buffer[0] == 0) pthread_cond_wait(&condc, &the_mutex);
             //se consume el item
-            printf("Voy a despertarme %d\n", (*num_hilo)+1);
 
             int item = consume_item(buffer);
             //el hilo ha consumido un item mas
@@ -201,8 +196,8 @@ void *consumidor(void *args) {
             ++i_B;
         }
     }
-    printf("Llego al final %d\n", (*num_hilo)+1);
 
+    //Cancelamos todos los consumidores que quedan pendientes
     if(consumidosf == P*MAX_PROD){
         for (int i = 0; i < C; ++i) {
             pthread_cancel(consumidores[i]);
