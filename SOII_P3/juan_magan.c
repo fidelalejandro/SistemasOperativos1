@@ -1,6 +1,3 @@
-//
-// Created by alejandro on 18/04/23.
-//
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -10,24 +7,11 @@
 #define C 2 // Número de consumidores
 #define N 10 // Tamaño del buffer
 #define MAX_PROD 20 // Numero maximo de items a producir por cada hilo productor
+#define MAX_CONS (P*MAX_PROD)/C // Numero maximo de items a consumir por cada hilo consumidor
 
 pthread_mutex_t the_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condc = PTHREAD_COND_INITIALIZER;
 pthread_cond_t condp = PTHREAD_COND_INITIALIZER;
-pthread_cond_t broadcast = PTHREAD_COND_INITIALIZER; //Creamos una condición para el broadcast de los consumidores
-
-pthread_t productores[P], consumidores[C];
-
-//Declaración de las variables de los sleeps
-int sleep1 = 0;
-int sleep2 = 0;
-int sleep3 = 0;
-int sleep4 = 0;
-int sleep5 = 0;
-int sleep6 = 0;
-
-//Total de consumidos todo
-int consumidosf = 0;
 
 //Declaración de los arrays de productores y consumidores
 int *arrayA;
@@ -44,6 +28,8 @@ int i_B = 0;
 
 //buffer
 int *buffer;
+//en caso de que el numero de items a consumir por cada consumidor no sea el mismo, sera el ultimo el que consuma los restantes
+int resto = (P * MAX_PROD) % C;
 
 /**
  * Función que produce un elemento aleatorio.
@@ -60,9 +46,9 @@ int produce_item() {
  * @param item
  */
 void insert_item(int *buffer, int item) {
-    //Aumentamos el valor del contador
+    //se aumenta el valor del contador
     buffer[0]++;
-    //Insertamos el item
+    //se inserta el item
     buffer[buffer[0]] = item;
 }
 
@@ -72,11 +58,11 @@ void insert_item(int *buffer, int item) {
  * @return
  */
 int consume_item(int *buffer) {
-    //Tomamos el número que se encuentra en la posicion del buffer indicada por el primer elemento del mismo
+    //se toma el numero que se encuentra en la posicion del buffer indicada por el puntero
     int num = buffer[buffer[0]];
-    //Escribimos un -1 en su lugar
+    //se escribe un -1 en su lugar
     buffer[buffer[0]] = -1;
-    //Restamos el valor del índice
+    //se resta el valor del puntero
     buffer[0]--;
     return num;
 }
@@ -139,7 +125,6 @@ void *productor(void *args) {
         ++i_A;
     }
 
-
     pthread_exit(NULL);
 }
 
@@ -150,7 +135,6 @@ void *productor(void *args) {
  */
 void *consumidor(void *args) {
 
-
     //se toma el numero de hilo consumidor
     int *num_hilo;
     num_hilo = args;
@@ -158,7 +142,7 @@ void *consumidor(void *args) {
     int consumidos = 0;
     //el hilo consume mientras no alcanza el maximo
     //while (producidos < MAX_PROD && suma no acabe) {
-    while (consumidosf < P * MAX_PROD) { //En teoria esto no se puede hacer
+    while (consumidos < MAX_CONS) { //En teoria esto no se puede hacer
         //Se comprueba si el mutex está bloqueado
         if (pthread_mutex_trylock(&the_mutex) == 0) {
 
@@ -166,22 +150,16 @@ void *consumidor(void *args) {
             //se solicita el bloqueo del mutex en el trylock
             //pthread_mutex_lock(&the_mutex);
             //mientras el buffer este vacio(buffer[0]=0), el hilo consumidor se bloquea hasta que un hilo productor lo despierte
-
-
             while (buffer[0] == 0) pthread_cond_wait(&condc, &the_mutex);
             //se consume el item
-            sleep(1);
             int item = consume_item(buffer);
             //el hilo ha consumido un item mas
-            consumidosf++;
-            printf("Consumidor %d consumio %d \n", (*num_hilo) + 1, item);
+            consumidos++;
+            printf("Consumidor %d consumio %d en la iteracion %d\n", (*num_hilo) + 1, item, consumidos);
             //si se consume un item, se despierta a los posibles hilos productores bloqueados porque el buffer estuviese lleno
             pthread_cond_signal(&condp);
             //se libera el acceso al mutex
             pthread_mutex_unlock(&the_mutex);
-
-
-
         } else { //FALLA EL TRYLOCK, mutex bloqueado y hay q hacer el sumatorio
             /********************************_____FUERA DE REGIÓN CRÍTICA_____********************************/
             while (i_B < 100 * C) {
@@ -192,43 +170,46 @@ void *consumidor(void *args) {
         }
 
     }
-
+    //en caso de que el resto de los items a consumir por cada consumidor no sea 0, el último consumidor consumirá los items restantes
+    if ((*num_hilo == C - 1) && (resto != 0)) {
+        //se pone la variable consumidos a 0
+        consumidos = 0;
+        //se consumen los items restantes de la division
+        while (consumidos < resto) {
+            //se solicita el bloqueo del mutex
+            pthread_mutex_lock(&the_mutex);
+            //mientras el buffer este vacio(buffer[0]=0), el hilo consumidor se bloquea hasta que un hilo productor lo despierte
+            while (buffer[0] == 0) pthread_cond_wait(&condc, &the_mutex);
+            //se consume el item
+            int item = consume_item(buffer);
+            //el hilo ha consumido un item mas
+            consumidos++;
+            printf("Consumidor %d consumio %d en la iteracion %d\n", (*num_hilo) + 1, item, consumidos);
+            //si se consume un item, se despierta a los posibles hilos productores bloqueados porque el buffer estuviese lleno
+            pthread_cond_signal(&condp);
+            //se libera el acceso al mutex
+            pthread_mutex_unlock(&the_mutex);
+        }
+    }
 
     //ACABAN LOS CONSUMIDORES
-    if (i_B < 100*C) {
-
-
-        while (i_B < 100 * C) {
-            sumB += arrayB[i_B];
-            if (i_B == (100 * C) - 1) printf("\n*****ACABA LA SUMA DE LOS CONSUMIDORES*****\n\n");
-            ++i_B;
-        }
+    while (i_B < 100 * C) {
+        sumB += arrayB[i_B];
+        if(i_B == (100*C)-1) printf("\n*****ACABA LA SUMA DE LOS CONSUMIDORES*****\n\n");
+        ++i_B;
     }
-
-    //Cancelamos todos los consumidores que quedan pendientes
-    if(consumidosf == P*MAX_PROD){
-        for (int i = 0; i < C; ++i) {
-            pthread_cancel(consumidores[i]);
-
-        }
-    }
-
     pthread_exit(NULL);
 }
 
 int main() {
 
-
-
-
     //Eliminamos las variables de condición antes de crearlas
     pthread_cond_destroy(&condc);
     pthread_cond_destroy(&condp);
-    pthread_cond_destroy(&broadcast);
 
     //Eliminamos los mutex
     pthread_mutex_destroy(&the_mutex);
-    //pthread_t productores[P], consumidores[C];
+    pthread_t productores[P], consumidores[C];
 
     //Creamos dos vectores para poder pasar a la funcion productor y consumidor. AsÍ evitamos que los hilos modifiquen el valor de una misma variable
     int vector_productores[P];
@@ -239,7 +220,6 @@ int main() {
     //Inicializamos las variables de condicion de consumo y producción
     pthread_cond_init(&condc, NULL);
     pthread_cond_init(&condp, NULL);
-    pthread_cond_init(&broadcast, NULL);
 
     //Asignamos la memoria a los arrays cuyos elementos se van a sumar
     arrayA = (int *) malloc(100 * P * sizeof(int));
