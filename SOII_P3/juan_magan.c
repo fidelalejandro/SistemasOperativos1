@@ -18,6 +18,14 @@ pthread_cond_t broadcast = PTHREAD_COND_INITIALIZER; //Creamos una condición pa
 
 pthread_t productores[P], consumidores[C];
 
+//Declaración de las variables de los sleeps
+int sleep1 = 0;
+int sleep2 = 0;
+int sleep3 = 0;
+int sleep4 = 0;
+int sleep5 = 0;
+int sleep6 = 0;
+
 //Total de consumidos todo
 int consumidosf = 0;
 
@@ -162,11 +170,11 @@ void *consumidor(void *args) {
 
             while (buffer[0] == 0) pthread_cond_wait(&condc, &the_mutex);
             //se consume el item
-
+            sleep(1);
             int item = consume_item(buffer);
             //el hilo ha consumido un item mas
             consumidosf++;
-            printf("Consumidor %d consumio %d en la iteracion %d\n", (*num_hilo) + 1, item, consumidos);
+            printf("Consumidor %d consumio %d \n", (*num_hilo) + 1, item);
             //si se consume un item, se despierta a los posibles hilos productores bloqueados porque el buffer estuviese lleno
             pthread_cond_signal(&condp);
             //se libera el acceso al mutex
