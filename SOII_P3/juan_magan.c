@@ -13,6 +13,10 @@ pthread_mutex_t the_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condc = PTHREAD_COND_INITIALIZER;
 pthread_cond_t condp = PTHREAD_COND_INITIALIZER;
 
+int n_A;
+int n_B;
+
+
 //Declaración de los arrays de productores y consumidores
 int *arrayA;
 int *arrayB;
@@ -74,6 +78,7 @@ int consume_item(int *buffer) {
  */
 void *productor(void *args) {
 
+
     //se toma el numero de hilo consumidor
     int *num_hilo;
     num_hilo = args;
@@ -82,6 +87,8 @@ void *productor(void *args) {
     //tan solo se producen items mientras no se supere el numero maximo (20)
     //while (producidos < MAX_PROD && suma no acabe) {
     while (producidos < MAX_PROD) {
+
+        srand(time(NULL));
 
         //Se comprueba si el mutex está bloqueado
         if (pthread_mutex_trylock(&the_mutex) == 0) {
@@ -110,9 +117,14 @@ void *productor(void *args) {
             /********************************_____FUERA DE REGIÓN CRÍTICA_____********************************/
 
             while (i_A < 100 * P) {
-                sumA += arrayA[i_A];
-                if(i_A == (100*P)-1) printf("\n*****ACABA LA SUMA DE LOS PRODUCTORES*****\n\n");
-                ++i_A;
+                srand(time(NULL));
+                n_A = rand() %5 +1;
+                for (int i = 0; i < n_A; ++i) {
+                    sumA += arrayA[i_A];
+                    if(i_A == (100*P)-1) printf("\n*****ACABA LA SUMA DE LOS PRODUCTORES*****\n\n");
+                    ++i_A;
+                }
+
             }
 
         }
@@ -120,9 +132,13 @@ void *productor(void *args) {
 
     //ACABAN LOS PRODUCTORES
     while (i_A < 100 * P) {
-        sumA += arrayA[i_A];
-        if(i_A == (100*P)-1) printf("\n*****ACABA LA SUMA DE LOS PRODUCTORES*****\n\n");
-        ++i_A;
+        srand(time(NULL));
+         n_A = rand() %5 +1;
+        for (int i = 0; i < n_A; ++i) {
+            sumA += arrayA[i_A];
+            if(i_A == (100*P)-1) printf("\n*****ACABA LA SUMA DE LOS PRODUCTORES*****\n\n");
+            ++i_A;
+        }
     }
 
     pthread_exit(NULL);
@@ -144,6 +160,7 @@ void *consumidor(void *args) {
     //while (producidos < MAX_PROD && suma no acabe) {
     while (consumidos < MAX_CONS) { //En teoria esto no se puede hacer
         //Se comprueba si el mutex está bloqueado
+        srand(time(NULL));
         if (pthread_mutex_trylock(&the_mutex) == 0) {
 
             /********************************_____REGIÓN CRÍTICA_____********************************/
@@ -163,9 +180,13 @@ void *consumidor(void *args) {
         } else { //FALLA EL TRYLOCK, mutex bloqueado y hay q hacer el sumatorio
             /********************************_____FUERA DE REGIÓN CRÍTICA_____********************************/
             while (i_B < 100 * C) {
-                sumB += arrayB[i_B];
-                if(i_B == (100*C)-1) printf("\n*****ACABA LA SUMA DE LOS CONSUMIDORES*****\n\n");
-                ++i_B;
+                srand(time(NULL));
+                n_B = rand() % 5 + 1;
+                for (int i = 0; i < n_B; ++i) {
+                    sumB += arrayB[i_B];
+                    if (i_B == (100 * C) - 1) printf("\n*****ACABA LA SUMA DE LOS CONSUMIDORES*****\n\n");
+                    ++i_B;
+                }
             }
         }
 
@@ -194,9 +215,13 @@ void *consumidor(void *args) {
 
     //ACABAN LOS CONSUMIDORES
     while (i_B < 100 * C) {
-        sumB += arrayB[i_B];
-        if(i_B == (100*C)-1) printf("\n*****ACABA LA SUMA DE LOS CONSUMIDORES*****\n\n");
-        ++i_B;
+        srand(time(NULL));
+        n_B = rand() % 5 + 1;
+        for (int i = 0; i < n_B; ++i) {
+            sumB += arrayB[i_B];
+            if (i_B == (100 * C) - 1) printf("\n*****ACABA LA SUMA DE LOS CONSUMIDORES*****\n\n");
+            ++i_B;
+        }
     }
     pthread_exit(NULL);
 }
